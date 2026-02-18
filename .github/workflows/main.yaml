@@ -1,19 +1,14 @@
-name: Android Build & Release
+name: Android Internal Testing Upload
 
 on:
   push:
     branches:
       - main
-      - master
       - develop
-  pull_request:
-    branches:
-      - main
-      - master
 
 jobs:
   build:
-    name: Build Android APK
+    name: Build & Upload to Play Console
     runs-on: ubuntu-latest
 
     steps:
@@ -34,15 +29,14 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Verify Flutter Setup
-        run: flutter doctor
+      - name: Build App Bundle (AAB)
+        run: flutter build appbundle --release
 
-      - name: Build Release APK
-        run: flutter build apk --release --split-per-abi
-
-      - name: Upload APK to GitHub Release
-        uses: ncipollo/release-action@v1
+      - name: Upload to Play Console (Internal)
+        uses: r0adkll/upload-google-play@v1
         with:
-          artifacts: build/app/outputs/flutter-apk/*.apk
-          tag: v1.0.${{ github.run_number }}
-          token: ${{ secrets.TOKEN }}
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.yourcompany.yourapp
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed
