@@ -1,0 +1,48 @@
+name: Android Build & Release
+
+on:
+push:
+branches:
+- main
+- master
+- develop
+pull_request:
+branches:
+- main
+- master
+
+jobs:
+build:
+name: Build Android APK
+runs-on: ubuntu-latest
+
+steps:
+- name: Checkout Repository
+uses: actions/checkout@v3
+
+- name: Setup Java
+uses: actions/setup-java@v3
+with:
+distribution: 'zulu'
+java-version: '17'
+
+- name: Setup Flutter
+uses: subosito/flutter-action@v2
+with:
+channel: stable
+
+- name: Install Dependencies
+run: flutter pub get
+
+- name: Verify Flutter Setup
+run: flutter doctor
+
+- name: Build Release APK
+run: flutter build apk --release --split-per-abi
+
+- name: Upload APK to GitHub Release
+uses: ncipollo/release-action@v1
+with:
+artifacts: build/app/outputs/flutter-apk/*.apk
+          tag: v1.0.${{ github.run_number }}
+          token: ${{ secrets.TOKEN }}
